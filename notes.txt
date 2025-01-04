@@ -1,0 +1,7 @@
+What info do I want to see, and in what format? What's missing from Garmin App displays?
+    - I'd like to see how my sleep score, activity level (intensity mins?), sun exposure (solar charging), HRV,
+        and stress levels correlate and change over time, maybe over the course of a week. 
+    - How granular should my sleep score be? Bar chart of light,deep,rem,and awake time for each day?
+    - Overlay this with stress, daily intensity minutes, sun exposure, HRV
+    - Change Graph shading for Day/night times. 
+    - Smoothing? Implement some sort of rolling average for stress, 
