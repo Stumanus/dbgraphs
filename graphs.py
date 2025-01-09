@@ -1,6 +1,8 @@
+import pandas as pd
 import numpy as np
 import sqlite3
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 from matplotlib import rcParams
 from datetime import datetime, timedelta
 
@@ -33,76 +35,76 @@ rcParams.update({
     "lines.markersize": 6,  # Default marker size
     "text.color": text_color,  # Default text color
 })
-#Extract data from ~/HealthData/DBs/garmin.db
-conn = sqlite3.connect('/home/stu/HealthData/DBs/garmin.db')
-c = conn.cursor()
 
-#Rolling avg stress
-c.execute(f'SELECT * FROM stress WHERE timestamp >= (SELECT DATETIME("now","-7 day"));')
-times = list()
-vals = list()
-rolling_avg_period=240
-for row in c.fetchall():
-    time = datetime.strptime(row[0],'%Y-%m-%d %H:%M:%S.%f')
-    times.append(time)
-    vals.append(row[1])
-#Compute rolling avg, append to dict
-vals = np.convolve(vals, np.ones(rolling_avg_period) / rolling_avg_period, mode='valid')
-times = times[-len(vals):]
-stress_ra = {time:val for time,val in zip(times,vals)}
+'''Extract data from ~/HealthData/DBs/garmin_summary.db
+    Sleep data is in ~/HealthData/DBs/garmin.db'''
 
-#Sleep score and total sleep daily
-c.execute(f'SELECT * FROM sleep WHERE day >= (SELECT DATETIME("now","-7 day"));')
-sleep_totals = dict()
-sleep_score = dict()
-for row in c.fetchall():
-    day = datetime.strptime(row[0],'%Y-%m-%d')
-    start = datetime.strptime(row[1],'%Y-%m-%d %H:%M:%S.%f')
-    end = datetime.strptime(row[2],'%Y-%m-%d %H:%M:%S.%f')
-    total_sleep = datetime.strptime(row[3],'%H:%M:%S.%f')
-    total_sleep = float(total_sleep.hour + float(total_sleep.minute / 60))
-    deep_sleep = row[4]
-    light_sleep = row[5]
-    rem_sleep = row[6]
-    awake = row[7]
-    sleep_stress = row[9]
-    score = row[10]
-    sleep_score[day] = score
-    sleep_totals[day] = total_sleep
-
-#Moderate and Vigorous activity minutes daily
-moderate_activity_totals = dict()
-vigorous_activity_totals = dict()
-c.execute('SELECT day,moderate_activity_time, vigorous_activity_time FROM daily_summary WHERE day >= \
-        (SELECT DATETIME("now","-7 day"));')
-for row in c.fetchall():
-    day = datetime.strptime(row[0],'%Y-%m-%d')
-    moderate_time = datetime.strptime(row[1],'%H:%M:%S.%f')
-    moderate_time = (moderate_time.hour * 60) + moderate_time.minute
-    vigorous_time = datetime.strptime(row[1],'%H:%M:%S.%f')
-    vigorous_time = (vigorous_time.hour * 60) + vigorous_time.minute
-    moderate_activity_totals[day] = moderate_time
-    vigorous_activity_totals[day] = vigorous_time
-
-conn.close()
-
-#Extract data from ~/HealthData/DBs/garmin_summary.db
 conn = sqlite3.connect('/home/stu/HealthData/DBs/garmin_summary.db')
-c = conn.cursor()
+q1 = 'SELECT day, hr_avg, rhr_avg, inactive_hr_avg, intensity_time, moderate_activity_time, \
+        vigorous_activity_time, stress_avg, calories_avg, calories_bmr_avg, calories_active_avg, \
+        calories_consumed_avg, calories_goal, activities_calories FROM days_summary \
+        WHERE day BETWEEN DATETIME("now","-8 days") AND DATETIME("now","-1 days");'
 
-#Net Calories Consumed daily
-net_cals_consumed = dict()
-c.execute('SELECT day, calories_active_avg, calories_consumed_avg FROM days_summary \
-        WHERE day >= (SELECT DATETIME ("now","-7 day"));')
-for row in c.fetchall():
-    print(row)
+conn2 = sqlite3.connect('/home/stu/HealthData/DBs/garmin.db')
+q2 = 'SELECT day,total_sleep,deep_sleep,light_sleep,rem_sleep,awake,avg_stress,score \
+        FROM sleep WHERE day BETWEEN DATETIME("now","-8 days") AND DATETIME("now","-1 days");'
 
+#Import data into pandas and do some preprocessing
+df1 = pd.read_sql_query(q1,conn)
+df2 = pd.read_sql_query(q2,conn2)
+garmin_df = pd.merge(df1,df2,how='inner',on='day')
+garmin_df.fillna(value=0, inplace=True)
+time_cols = garmin_df.select_dtypes(include=['object']).iloc[:,1:].columns
+for x in time_cols:
+    garmin_df[x] = pd.to_timedelta(garmin_df[x])
+    garmin_df[x] = garmin_df[x].apply(lambda x: x.total_seconds() / 3600)
+garmin_df['day'] = pd.to_datetime(garmin_df['day'])
 
+#Create 2x2 figure with Sleep, Calories, Excercise, Heart charts 
+fig, axes = plt.subplots(2,2,figsize=(10,8))
 
-plt.figure(figsize=(8, 4))
-plt.plot(stress_ra.keys(),stress_ra.values(), label='stress', color="#0078D7")
-plt.bar(sleep_totals.keys(),sleep_totals.values(), label='total_sleep',color='g')
-plt.scatter(sleep_score.keys(),sleep_score.values(), label='sleep_score', color='r')
-plt.bar(moderate_activity_totals.keys(),moderate_activity_totals.values(), label='moderate_total', color='b')
-plt.legend()
+#Sleep Chart
+sleep_df = garmin_df[['day','total_sleep','deep_sleep','light_sleep','rem_sleep','awake']]
+offset = timedelta(hours=3)
+multiplier = 0
+for col in sleep_df.iloc[:,1:].columns:
+    spacing = (offset * multiplier) - offset
+    axes[0,0].bar(sleep_df['day']+spacing,sleep_df[col],width=.1,label=col)
+    multiplier+=1
+axes[0,0].set_ylabel('Hours')
+axes[0,0].set_title('Sleep')
+#axes[0,0].set_ylim(top=(sleep_df.iloc[:,1:].max().max()*1.2))
+axes[0,0].legend()
+
+#Activity Chart
+activity_df = garmin_df[['day','moderate_activity_time','vigorous_activity_time']]
+activity_df.iloc[:,1:] = activity_df.iloc[:,1:].apply(lambda x: x*60)
+for row in activity_df.iterrows():
+    x = row[1].iloc[0]
+    y = row[1].iloc[1:]
+    bottom = 0
+    colors = ['g','b','r']
+    for i,feature in enumerate(y):
+        axes[0,1].bar(x,feature,label=activity_df.columns[i+1],bottom=bottom,color=colors[i])
+        bottom+=feature
+axes[0,1].set_ylabel('Minutes')
+axes[0,1].set_title('Activity')
+axes[0,1].legend(activity_df.columns[1:])
+
+#Calories Chart
+calories_df = garmin_df[['day','calories_avg','calories_bmr_avg','calories_active_avg','calories_consumed_avg','calories_goal','activities_calories']]
+for row in calories_df.iloc[:,1:].columns:
+    axes[1,0].plot(calories_df['day'],calories_df[row],label=row)
+axes[1,0].set_ylabel('Calories')
+axes[1,0].set_title('Calories In/Out')
+axes[1,0].legend()
+
+#Heart Chart
+#axes[1,1].plot(stress_ra.keys(),stress_ra.values(),label='Stress', color='#0078D7')
+#axes[1,1].set_ylabel('Score')
+#axes[1,1].set_title('Heart')
+#axes[1,1].xaxis.set_major_formatter(mdates.DateFormatter('%m-%d-%Y'))
+#axes[1,1].legend()
+
+plt.tight_layout()
 plt.show()
