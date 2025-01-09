@@ -121,3 +121,4 @@ axes[1,1].legend(stress_df.iloc[:,1:])
 
 plt.tight_layout()
 plt.show()
+plt.savefig('./garmin_graphs.jpg')

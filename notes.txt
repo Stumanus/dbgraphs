@@ -5,3 +5,9 @@ What info do I want to see, and in what format? What's missing from Garmin App d
     - Overlay this with stress, daily intensity minutes, sun exposure, HRV
     - Change Graph shading for Day/night times. 
     - Smoothing? Implement some sort of rolling average for stress, 
+
+Rough Draft is looking good, to do:
+    -Think about whether or not calories in/out makes sense
+    -Dual y axis labels? Stress and BPM?
+    -Do I want weight somewhere in here? Which chart? Calories In/Out dual y axis
+    -Clean up pandas setting with copy warnings. 
