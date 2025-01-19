@@ -116,9 +116,12 @@ stress_df = garmin_df[['day','stress_avg','hr_avg','rhr_avg', 'inactive_hr_avg']
 axes[1,1].plot(stress_df['day'],stress_df.iloc[:,1:])
 axes[1,1].set_ylabel('Score')
 axes[1,1].set_title('Heart')
-axes[1,1].xaxis.set_major_formatter(mdates.DateFormatter('%m-%d-%Y'))
+axes[1,1].xaxis.set_major_formatter(mdates.DateFormatter('%m-%d'))
 axes[1,1].legend(stress_df.iloc[:,1:])
 
 plt.tight_layout()
-plt.savefig('/home/stu/environments/dbgraphs/garmin_graphs.jpg')
+<<<<<<< HEAD
+=======
+plt.savefig('/home/stu/docker/homeAssistant/data/www/garmin_graphs.jpg',bbox_inches='tight',pad_inches=0)
+>>>>>>> f6ccb2bb90f0b5de6256dcc3b46300e5f344b5ac
 plt.show()
