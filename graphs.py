@@ -120,5 +120,5 @@ axes[1,1].xaxis.set_major_formatter(mdates.DateFormatter('%m-%d-%Y'))
 axes[1,1].legend(stress_df.iloc[:,1:])
 
 plt.tight_layout()
-plt.savefig('./garmin_graphs.jpg')
+plt.savefig('/home/stu/environments/dbgraphs/garmin_graphs.jpg')
 plt.show()
