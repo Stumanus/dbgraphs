@@ -74,6 +74,7 @@ for col in sleep_df.iloc[:,1:].columns:
 axes[0,0].set_ylabel('Hours')
 axes[0,0].set_title('Sleep')
 #axes[0,0].set_ylim(top=(sleep_df.iloc[:,1:].max().max()*1.2))
+axes[0,0].xaxis.set_major_formatter(mdates.DateFormatter('%m-%d'))
 axes[0,0].legend()
 
 #Activity Chart
@@ -89,6 +90,7 @@ for row in activity_df.iterrows():
         bottom+=feature
 axes[0,1].set_ylabel('Minutes')
 axes[0,1].set_title('Activity')
+axes[0,1].xaxis.set_major_formatter(mdates.DateFormatter('%m-%d'))
 axes[0,1].legend(activity_df.columns[1:])
 
 #Calories Chart
@@ -109,6 +111,7 @@ for row in calories_df.iterrows():
         bottom+=feature
 axes[1,0].set_ylabel('Calories')
 axes[1,0].set_title('Calories In/Out')
+axes[1,0].xaxis.set_major_formatter(mdates.DateFormatter('%m-%d'))
 axes[1,0].legend(calories_df.columns[1:])
 
 #Stress Chart
@@ -120,8 +123,5 @@ axes[1,1].xaxis.set_major_formatter(mdates.DateFormatter('%m-%d'))
 axes[1,1].legend(stress_df.iloc[:,1:])
 
 plt.tight_layout()
-<<<<<<< HEAD
-=======
-plt.savefig('/home/stu/docker/homeAssistant/data/www/garmin_graphs.jpg',bbox_inches='tight',pad_inches=0)
->>>>>>> f6ccb2bb90f0b5de6256dcc3b46300e5f344b5ac
+plt.savefig('/home/stu/environments/dbgraphs/garmin_graphs.jpg',bbox_inches='tight',pad_inches=0)
 plt.show()
