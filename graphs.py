@@ -74,6 +74,7 @@ for col in sleep_df.iloc[:,1:].columns:
 axes[0,0].set_ylabel('Hours')
 axes[0,0].set_title('Sleep')
 #axes[0,0].set_ylim(top=(sleep_df.iloc[:,1:].max().max()*1.2))
+axes[0,0].xaxis.set_major_formatter(mdates.DateFormatter('%m-%d'))
 axes[0,0].legend()
 
 #Activity Chart
@@ -89,13 +90,14 @@ for row in activity_df.iterrows():
         bottom+=feature
 axes[0,1].set_ylabel('Minutes')
 axes[0,1].set_title('Activity')
+axes[0,1].xaxis.set_major_formatter(mdates.DateFormatter('%m-%d'))
 axes[0,1].legend(activity_df.columns[1:])
 
 #Calories Chart
 calories_df = garmin_df[['day','calories_goal','calories_bmr_avg','calories_active_avg','calories_consumed_avg','activities_calories']]
 calories_df.loc[:,'calories_consumed_avg'] = calories_df['calories_consumed_avg'].replace(0.0,pd.NA)
 calories_df.loc[:,'active_burn'] = calories_df['calories_active_avg'] - calories_df['activities_calories']
-calories_df.loc[:,'calories_consumed_avg'] = calories_df['calories_consumed_avg'].fillna(calories_df['calories_bmr_avg']+calories_df['active_burn'])
+calories_df.loc[:,'calories_consumed_avg'] = calories_df.loc[:,'calories_consumed_avg'].fillna(calories_df.loc[:,'calories_bmr_avg']+calories_df.loc[:,'active_burn'])
 calories_df.loc[:,'net_calories'] = calories_df['calories_consumed_avg'] - calories_df['calories_active_avg']
 axes[1,0].plot(calories_df['day'],calories_df['calories_goal'],label='calories_avg',color='g')
 calories_df = calories_df[['day','calories_goal','net_calories','active_burn','activities_calories']]
@@ -109,13 +111,14 @@ for row in calories_df.iterrows():
         bottom+=feature
 axes[1,0].set_ylabel('Calories')
 axes[1,0].set_title('Calories In/Out')
+axes[1,0].xaxis.set_major_formatter(mdates.DateFormatter('%m-%d'))
 axes[1,0].legend(calories_df.columns[1:])
 
 #Stress Chart
 stress_df = garmin_df[['day','stress_avg','hr_avg','rhr_avg', 'inactive_hr_avg']]
 axes[1,1].plot(stress_df['day'],stress_df.iloc[:,1:])
 axes[1,1].set_ylabel('Score')
-axes[1,1].set_title('Heart')
+axes[1,1].set_title('Stress')
 axes[1,1].xaxis.set_major_formatter(mdates.DateFormatter('%m-%d'))
 axes[1,1].legend(stress_df.iloc[:,1:])
 
