@@ -123,5 +123,5 @@ axes[1,1].xaxis.set_major_formatter(mdates.DateFormatter('%m-%d'))
 axes[1,1].legend(stress_df.iloc[:,1:])
 
 plt.tight_layout()
-plt.savefig('/home/stu/docker/homeAssistant/data/www/garmin_graphs.jpg',bbox_inches='tight',pad_inches=0)
+plt.savefig('/home/stu/environments/dbgraphs/garmin_graphs.jpg',bbox_inches='tight',pad_inches=0)
 plt.show()
